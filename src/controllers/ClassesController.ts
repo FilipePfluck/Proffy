@@ -68,7 +68,7 @@ interface ScheduleItem {
         
 
         async index(request: Request, response: Response): Promise<Response>{
-            const filters = request.query
+            /* const filters = request.query
 
             const subject = filters.subject as string
             const week_day = filters.week_day as string
@@ -94,8 +94,31 @@ interface ScheduleItem {
                 .where('classes.subject', '=', subject)
                 .join('users', 'classes.user_id', '=', 'users.id')
                 .select(['classes.*', 'users.*'])
+            */
 
-            return response.json(classes)
+            const classes = await db('classes')
+                .select('*')
+                .join('users', 'classes.user_id', '=', 'users.id')
+            
+            const organizedClasses = []
+
+            for(let i=0; i<classes.length; i++){
+                const schedule = await db('class_schedule') 
+                    .select('*')
+                    .where('class_id', '=', classes[i].id)
+                    
+
+                console.log(schedule)
+
+                organizedClasses.push({
+                    ...classes[i],
+                    schedule
+                })
+            }
+
+            console.log(organizedClasses)
+
+            return response.json(organizedClasses)
         }
     }
 
