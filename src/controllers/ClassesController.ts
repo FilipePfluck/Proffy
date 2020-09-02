@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
 
+import {  } from 'knex'
+
 import db from '../database/connection'
 import convertHourToMinutes from '../utils/convertHourToMinutes'
 
@@ -68,37 +70,46 @@ interface ScheduleItem {
         
 
         async index(request: Request, response: Response): Promise<Response>{
-            /* const filters = request.query
+            const filters = request.query
 
+            const page = Number(filters.page)
             const subject = filters.subject as string
             const week_day = filters.week_day as string
             const time = filters.time as string
 
-            if(!filters.week_day || !filters.subject || !filters.time){
-                return  response.status(404).json({
-                    message: 'missing filters'
-                })
-            }
-
-            const timeInMinutes = convertHourToMinutes(time)
+            const timeInMinutes = !!time 
+                ? convertHourToMinutes(time)
+                : null
 
             const classes = await db('classes')
                 .whereExists(function() {
                     this.select('class_schedule.*')
                         .from('class_schedule')
                         .whereRaw('`class_schedule`.`class_id` = `classes`.`id`')
-                        .whereRaw('`class_schedule`.`week_day` = ??', [Number(week_day)])
-                        .whereRaw('`class_schedule`.`from` <= ??', [timeInMinutes])
-                        .whereRaw('`class_schedule`.`to` > ??', [timeInMinutes])
+                        .modify(function(queryBuilder) {
+                            if (week_day) {
+                                queryBuilder.whereRaw('`class_schedule`.`week_day` = ??', [Number(week_day)])
+                            }
+                            if (timeInMinutes) {
+                                queryBuilder.whereRaw('`class_schedule`.`from` <= ??', [timeInMinutes])
+                                queryBuilder.whereRaw('`class_schedule`.`to` > ??', [timeInMinutes])
+                            }
+                        }) 
                 })
-                .where('classes.subject', '=', subject)
+                .modify(function(queryBuilder) {
+                    if(subject){
+                        queryBuilder.where('classes.subject', '=', subject)
+                    }
+                })
                 .join('users', 'classes.user_id', '=', 'users.id')
                 .select(['classes.*', 'users.*'])
-            */
+                .limit(5)
+                .offset((page-1) * 5)
+                
 
-            const classes = await db('classes')
+            /* const classes = await db('classes')
                 .select('*')
-                .join('users', 'classes.user_id', '=', 'users.id')
+                .join('users', 'classes.user_id', '=', 'users.id') */
             
             const organizedClasses = []
 
